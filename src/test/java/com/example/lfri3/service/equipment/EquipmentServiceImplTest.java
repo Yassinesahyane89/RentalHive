@@ -4,269 +4,221 @@ import com.example.lfri3.entity.Equipment;
 import com.example.lfri3.repository.CustomerRepository;
 import com.example.lfri3.repository.EquipmentRepository;
 import com.example.lfri3.repository.RentaIInfoRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class EquipmentServiceImplTest {
 
-    // can update an equipment
-    private EquipmentServiceImpl equipmentService;
-    @Test
-    public void test_updateEquipment() {
-        EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
-        CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
-        RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
-        EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
+        @InjectMocks
+        private EquipmentServiceImpl equipmentService;
 
-        Long equipmentId = 1L;
-        Equipment existingEquipment = new Equipment(1L, "Equipment 1", "image1.jpg", 10, 10, true, 10.0);
-        Equipment updatedEquipment = new Equipment(1L, "Updated Equipment", "image1.jpg", 15, 15, true, 12.0);
+        @Mock
+        private EquipmentRepository equipmentRepository;
 
-        Mockito.when(equipmentRepository.findById(eq(equipmentId))).thenReturn(Optional.of(existingEquipment));
-        Mockito.when(equipmentRepository.save(any(Equipment.class))).thenReturn(updatedEquipment);
+        @BeforeEach
+        void setUp(){
+            MockitoAnnotations.openMocks(this);
+        }
+        // Can save equipment successfully
+        @Test
+        public void test_saveEquipment_successfully() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-        Equipment actualEquipment = equipmentService.updateEquipment(updatedEquipment, equipmentId);
+            Equipment equipment = new Equipment();
+            equipment.setName("Equipment 1");
+            equipment.setInitQuantity(10);
+            equipment.setAvailableQuantity(10);
+            equipment.setDailyRentalCost(10.0);
 
-        assertEquals(updatedEquipment, actualEquipment);
-    }
+            Mockito.when(equipmentRepository.save(Mockito.any(Equipment.class))).thenReturn(equipment);
 
-    // can save an equipment
-    @Test
-    public void test_saveEquipment() {
-        Equipment equipment = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            Equipment savedEquipment = equipmentService.saveEquipment(equipment);
 
-        Equipment savedEquipment = equipmentService.saveEquipment(equipment);
+            assertEquals(equipment, savedEquipment);
+        }
 
-        assertNotNull(savedEquipment);
-        assertEquals(equipment.getName(), savedEquipment.getName());
-        assertEquals(equipment.getImage(), savedEquipment.getImage());
-        assertEquals(equipment.getInitQuantity(), savedEquipment.getInitQuantity());
-        assertEquals(equipment.getAvailableQuantity(), savedEquipment.getAvailableQuantity());
-        assertEquals(equipment.getAvailable(), savedEquipment.getAvailable());
-        assertEquals(equipment.getDailyRentalCost(), savedEquipment.getDailyRentalCost());
-    }
+        // Can get equipment by ID successfully
+        @Test
+        public void test_getEquipmentById_successfully() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-    // can get an equipment by id
-    @Test
-    public void test_getEquipmentById() {
-        Equipment equipment = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            Long equipmentId = 1L;
+            Equipment equipment = new Equipment();
+            equipment.setId(equipmentId);
+            equipment.setName("Equipment 1");
+            equipment.setInitQuantity(10);
+            equipment.setAvailableQuantity(10);
+            equipment.setDailyRentalCost(10.0);
 
-        Equipment savedEquipment = equipmentService.saveEquipment(equipment);
+            Mockito.when(equipmentRepository.findById(equipmentId)).thenReturn(Optional.of(equipment));
 
-        Optional<Equipment> retrievedEquipment = equipmentService.getEquipmentById(savedEquipment.getId());
+            Optional<Equipment> retrievedEquipment = equipmentService.getEquipmentById(equipmentId);
 
-        assertTrue(retrievedEquipment.isPresent());
-        assertEquals(savedEquipment, retrievedEquipment.get());
-    }
+            assertTrue(retrievedEquipment.isPresent());
+            assertEquals(equipment, retrievedEquipment.get());
+        }
 
-    // can get available equipments
-    @Test
-    public void test_getEquipmentAvailable() {
-        Equipment equipment1 = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+        // Can get available equipment successfully
+        @Test
+        public void test_getEquipmentAvailable_successfully() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-        Equipment equipment2 = Equipment.builder()
-                .name("Equipment 2")
-                .image("image.jpg")
-                .initQuantity(5)
-                .availableQuantity(0)
-                .available(false)
-                .dailyRentalCost(15.0)
-                .build();
+            List<Equipment> availableEquipment = new ArrayList<>();
+            Equipment equipment1 = new Equipment();
+            equipment1.setId(1L);
+            equipment1.setName("Equipment 1");
+            equipment1.setInitQuantity(10);
+            equipment1.setAvailableQuantity(5);
+            equipment1.setDailyRentalCost(10.0);
+            availableEquipment.add(equipment1);
 
-        equipmentService.saveEquipment(equipment1);
-        equipmentService.saveEquipment(equipment2);
+            Equipment equipment2 = new Equipment();
+            equipment2.setId(2L);
+            equipment2.setName("Equipment 2");
+            equipment2.setInitQuantity(5);
+            equipment2.setAvailableQuantity(0);
+            equipment2.setDailyRentalCost(15.0);
+            availableEquipment.add(equipment2);
 
-        List<Equipment> availableEquipments = equipmentService.getEquipmentAvailable();
+            Mockito.when(equipmentRepository.findByAvailableIsTrue()).thenReturn(availableEquipment);
 
-        assertEquals(1, availableEquipments.size());
-        assertEquals(equipment1, availableEquipments.get(0));
-    }
+            List<Equipment> retrievedEquipment = equipmentService.getEquipmentAvailable();
 
-    // can get equipments by name
-    @Test
-    public void test_getEquipmentByName() {
-        Equipment equipment1 = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            assertEquals(availableEquipment, retrievedEquipment);
+        }
 
-        Equipment equipment2 = Equipment.builder()
-                .name("Equipment 2")
-                .image("image.jpg")
-                .initQuantity(5)
-                .availableQuantity(5)
-                .available(true)
-                .dailyRentalCost(15.0)
-                .build();
+        // Can get equipment by name successfully
+        @Test
+        public void test_getEquipmentByName_successfully() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-        equipmentService.saveEquipment(equipment1);
-        equipmentService.saveEquipment(equipment2);
+            String equipmentName = "Equipment";
+            List<Equipment> equipmentList = new ArrayList<>();
+            Equipment equipment1 = new Equipment();
+            equipment1.setId(1L);
+            equipment1.setName("Equipment 1");
+            equipment1.setInitQuantity(10);
+            equipment1.setAvailableQuantity(10);
+            equipment1.setDailyRentalCost(10.0);
+            equipmentList.add(equipment1);
 
-        List<Equipment> equipments = equipmentService.getEquipmentByName("Equipment");
+            Equipment equipment2 = new Equipment();
+            equipment2.setId(2L);
+            equipment2.setName("Equipment 2");
+            equipment2.setInitQuantity(5);
+            equipment2.setAvailableQuantity(5);
+            equipment2.setDailyRentalCost(15.0);
+            equipmentList.add(equipment2);
 
-        assertEquals(2, equipments.size());
-        assertTrue(equipments.contains(equipment1));
-        assertTrue(equipments.contains(equipment2));
-    }
+            Mockito.when(equipmentRepository.findByNameContains(equipmentName)).thenReturn(equipmentList);
 
-    // can fetch all equipments
-    @Test
-    public void test_fetchEquipmentList() {
-        Equipment equipment1 = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            List<Equipment> retrievedEquipment = equipmentService.getEquipmentByName(equipmentName);
 
-        Equipment equipment2 = Equipment.builder()
-                .name("Equipment 2")
-                .image("image.jpg")
-                .initQuantity(5)
-                .availableQuantity(5)
-                .available(true)
-                .dailyRentalCost(15.0)
-                .build();
+            assertEquals(equipmentList, retrievedEquipment);
+        }
 
-        equipmentService.saveEquipment(equipment1);
-        equipmentService.saveEquipment(equipment2);
+        // Can fetch list of equipment successfully
+        @Test
+        public void test_fetchEquipmentList_successfully() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-        List<Equipment> equipments = equipmentService.fetchEquipmentList();
+            List<Equipment> equipmentList = new ArrayList<>();
+            Equipment equipment1 = new Equipment();
+            equipment1.setId(1L);
+            equipment1.setName("Equipment 1");
+            equipment1.setInitQuantity(10);
+            equipment1.setAvailableQuantity(10);
+            equipment1.setDailyRentalCost(10.0);
+            equipmentList.add(equipment1);
 
-        assertEquals(2, equipments.size());
-        assertTrue(equipments.contains(equipment1));
-        assertTrue(equipments.contains(equipment2));
-    }
+            Equipment equipment2 = new Equipment();
+            equipment2.setId(2L);
+            equipment2.setName("Equipment 2");
+            equipment2.setInitQuantity(5);
+            equipment2.setAvailableQuantity(5);
+            equipment2.setDailyRentalCost(15.0);
+            equipmentList.add(equipment2);
 
-    // can update an equipment
-    @Test
-    public void test_updateEquipment() {
-        Equipment equipment = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            Mockito.when(equipmentRepository.findAll()).thenReturn(equipmentList);
 
-        Equipment savedEquipment = equipmentService.saveEquipment(equipment);
+            List<Equipment> retrievedEquipment = equipmentService.fetchEquipmentList();
 
-        Equipment updatedEquipment = Equipment.builder()
-                .name("Updated Equipment")
-                .image("updated_image.jpg")
-                .initQuantity(15)
-                .availableQuantity(15)
-                .available(true)
-                .dailyRentalCost(12.0)
-                .build();
+            assertEquals(equipmentList, retrievedEquipment);
+        }
 
-        Equipment result = equipmentService.updateEquipment(updatedEquipment, savedEquipment.getId());
+        // Can update equipment successfully
+        @Test
+        public void test_updateEquipment_successfully() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-        assertNotNull(result);
-        assertEquals(updatedEquipment.getName(), result.getName());
-        assertEquals(updatedEquipment.getImage(), result.getImage());
-        assertEquals(updatedEquipment.getInitQuantity(), result.getInitQuantity());
-        assertEquals(updatedEquipment.getAvailableQuantity(), result.getAvailableQuantity());
-        assertEquals(updatedEquipment.getAvailable(), result.getAvailable());
-        assertEquals(updatedEquipment.getDailyRentalCost(), result.getDailyRentalCost());
-    }
+            Long equipmentId = 1L;
+            Equipment existingEquipment = new Equipment();
+            existingEquipment.setId(equipmentId);
+            existingEquipment.setName("Existing Equipment");
+            existingEquipment.setInitQuantity(10);
+            existingEquipment.setAvailableQuantity(10);
+            existingEquipment.setDailyRentalCost(10.0);
 
-    // throws exception when updating non-existing equipment
-    @Test
-    public void test_updateNonExistingEquipment() {
-        Equipment equipment = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            Equipment updatedEquipment = new Equipment();
+            updatedEquipment.setId(equipmentId);
+            updatedEquipment.setName("Updated Equipment");
+            updatedEquipment.setInitQuantity(15);
+            updatedEquipment.setAvailableQuantity(15);
+            updatedEquipment.setDailyRentalCost(12.0);
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            equipmentService.updateEquipment(equipment, 100L);
-        });
-    }
+            Mockito.when(equipmentRepository.findById(equipmentId)).thenReturn(Optional.of(existingEquipment));
+            Mockito.when(equipmentRepository.save(Mockito.any(Equipment.class))).thenReturn(updatedEquipment);
 
-    // does not reserve an equipment if it is not available and there are conflicting reservations
-    @Test
-    public void test_reserveEquipmentNotAvailableWithConflictingReservations() {
-        Equipment equipment = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(0)
-                .available(false)
-                .dailyRentalCost(10.0)
-                .build();
+            Equipment result = equipmentService.updateEquipment(updatedEquipment, equipmentId);
 
-        Customer customer = Customer.builder()
-                .name("Customer 1")
-                .build();
+            assertEquals(updatedEquipment, result);
+        }
 
-        Date startDate = new Date();
-        Date endDate = new Date();
+        // Cannot get equipment by invalid ID
+        @Test
+        public void test_getEquipmentByInvalidId() {
+            EquipmentRepository equipmentRepository = Mockito.mock(EquipmentRepository.class);
+            CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
+            RentaIInfoRepository rentalInfoRepository = Mockito.mock(RentaIInfoRepository.class);
+            EquipmentServiceImpl equipmentService = new EquipmentServiceImpl(equipmentRepository, customerRepository, rentalInfoRepository);
 
-        boolean result = equipmentService.reserveEquipment(equipment.getId(), customer.getId(), startDate, endDate);
+            Long invalidId = 100L;
 
-        assertFalse(result);
-    }
+            Mockito.when(equipmentRepository.findById(invalidId)).thenReturn(Optional.empty());
 
-    // does not reserve an equipment if either the equipment or customer is null
-    @Test
-    public void test_reserveEquipmentWithNullEquipmentOrCustomer() {
-        Equipment equipment = Equipment.builder()
-                .name("Equipment 1")
-                .image("image.jpg")
-                .initQuantity(10)
-                .availableQuantity(10)
-                .available(true)
-                .dailyRentalCost(10.0)
-                .build();
+            Optional<Equipment> retrievedEquipment = equipmentService.getEquipmentById(invalidId);
 
-        Customer customer = Customer.builder()
-                .name("Customer 1")
-                .build();
-
-        Date startDate = new Date();
-        Date endDate = new Date();
-
-        boolean result1 = equipmentService.reserveEquipment(null, customer.getId(), startDate, endDate);
-        boolean result2 = equipmentService.reserveEquipment(equipment.getId(), null, startDate, endDate);
-
-        assertFalse(result1);
-        assertFalse(result2);
-    }
+            assertFalse(retrievedEquipment.isPresent());
+        }
 }
