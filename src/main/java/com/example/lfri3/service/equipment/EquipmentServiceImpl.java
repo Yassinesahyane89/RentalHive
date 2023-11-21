@@ -74,4 +74,42 @@ public class EquipmentServiceImpl implements EquipmentService{
         equipmentRepository.deleteById(equipmentId);
     }
 
+    @Override
+    public boolean reserveEquipment(Long equipmentId, Long customerId, @Valid Date startDate, @Valid Date endDate) {
+        Equipment equipment = equipmentRepository.findById(equipmentId).orElse(null);
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+
+        if (equipment != null && customer != null) {
+            if(equipment.getAvailableQuantity() > 0){
+                reserveAndSave(equipment,customer,startDate,endDate);
+                return true;
+            }else{
+                List<RentalInfo> conflictingReservations = rentalInfoRepository
+                        .findConflictingReservations(equipmentId, startDate, endDate);
+
+                if (conflictingReservations.isEmpty()) {
+
+                    reserveAndSave(equipment,customer,startDate,endDate);
+
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+     public void reserveAndSave(Equipment equipment, Customer customer, Date startDate, Date endDate) {
+
+        RentalInfo newRental = RentalInfo.builder()
+                .equipment(equipment)
+                .customer(customer)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+
+        equipment.setAvailableQuantity(equipment.getAvailableQuantity() - 1);
+        equipmentRepository.save(equipment);
+
+        rentalInfoRepository.save(newRental);
+    }
 }
