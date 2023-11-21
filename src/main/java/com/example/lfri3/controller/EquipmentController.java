@@ -69,4 +69,25 @@ public class EquipmentController {
         equipmentService.deleteEquipmentById(equipmentId);
     }
 
+    @PostMapping("/reserve")
+    public ResponseEntity<String> reserveEquipment(@Valid @RequestBody ReservationRequest reservationRequest, BindingResult result) {
+        if (result.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            for (FieldError error : result.getFieldErrors()) {
+                errorMessage.append(error.getField()).append(": ").append(error.getDefaultMessage()).append(".\n");
+            }
+            return ResponseEntity.badRequest().body(errorMessage.toString());
+        }
+
+        boolean isReserved = equipmentService.reserveEquipment(
+                reservationRequest.getEquipmentId(),
+                reservationRequest.getCustomerId(),
+                reservationRequest.getStartDate(),
+                reservationRequest.getEndDate());
+        if (isReserved) {
+            return ResponseEntity.ok("Equipment reserved successfully");
+        } else {
+            return ResponseEntity.badRequest().body("Reservation failed. Equipment not available or invalid IDs provided.");
+        }
+    }
 }
